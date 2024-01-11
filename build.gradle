@@ -8,8 +8,44 @@ plugins {
 group = 'com.bo'
 version = '0.0.1-SNAPSHOT'
 
-java {
-	sourceCompatibility = '17'
+subprojects{
+	apply plugin: 'com.github.johnrengelman.shadow'
+	apply plugin: 'java'
+}
+
+project(':ShareKernel'){
+	dependencies {}
+}
+
+project(':CheckInDomain'){
+	dependencies {
+		implementation project(':ShareKernel')
+	}
+}
+
+project(':CheckIn.Application'){
+	dependencies {
+		implementation project(':ShareKernel'), project(':CheckInDomain')
+		testImplementation project(':CheckInDomain').sourceSets.test.output
+	}
+}
+
+project('CheckIn.Infraestructure') {
+	dependencies {
+		implementation project(':ShareKernel'), project(':CheckInDomain'), project(':CheckIn.Application')
+		testImplementation project(':CheckInDomain').sourceSets.test.output, project(':CheckIn.Application').sourceSets.test.output
+	}
+}
+
+project('CheckInApi') {
+	dependencies {
+		implementation project(':ShareKernel'),
+				project(':CheckInDomain'),
+				project(':CheckIn.Infraestructure'),
+				project(':CheckIn.Application')
+		testImplementation project(':CheckInDomain').sourceSets.test.output,
+				project(':CheckIn.Application').sourceSets.test.output
+	}
 }
 
 repositories {
@@ -19,6 +55,18 @@ repositories {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+bootJar {
+	enabled = false
+}
+
+jar {
+	enabled = true
+}
+
+java {
+	sourceCompatibility = '17'
 }
 
 tasks.named('bootBuildImage') {
